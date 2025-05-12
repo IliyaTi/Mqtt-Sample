@@ -13,13 +13,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
+
 @Composable
 fun DefineBrokerScreen() {
+
+    DefineBrokerPage()
+
+}
+
+@Composable
+fun DefineBrokerPage() {
     Scaffold(
-        modifier = Modifier.fillMaxSize().padding(20.dp)
+        modifier = Modifier.fillMaxSize()
     ) { paddingValues ->
 
-        Column (modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+        Column (modifier = Modifier.fillMaxSize().padding(paddingValues).padding(20.dp)) {
 
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
@@ -29,14 +37,14 @@ fun DefineBrokerScreen() {
             )
 
             OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
                 value = "",
                 onValueChange = {},
                 label = { Text("Port") }
             )
 
             Button(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
                 onClick = {}
             ) {
                 Text("Create")
@@ -51,5 +59,5 @@ fun DefineBrokerScreen() {
 @Preview
 @Composable
 fun Prev() {
-    DefineBrokerScreen()
+    DefineBrokerPage()
 }

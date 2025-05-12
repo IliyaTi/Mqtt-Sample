@@ -65,7 +65,7 @@ fun MainPage(
                     modifier = Modifier.menuAnchor(PrimaryNotEditable),
                     readOnly = true,
                     value = "",
-                    label = { Text("Broker") },
+                    label = { Text("Select target Broker") },
                     onValueChange = {},
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
