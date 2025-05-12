@@ -20,6 +20,7 @@ abstract class AppDB : RoomDatabase() {
 
         // TODO: temp: Should provide the db using dagger-hilt
 
+        @Volatile
         private var instance: AppDB? = null
 
         fun getDatabase(context: Context): AppDB {

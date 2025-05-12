@@ -1,7 +1,12 @@
 plugins {
+    id("com.google.devtools.ksp")
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+
+    id("com.google.dagger.hilt.android")
+
+    kotlin("plugin.serialization")
 }
 
 android {
@@ -57,12 +62,31 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    // ROOM DB
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+//    ksp("android.arch.persistence.room:compiler:1.1.1")
+    ksp("androidx.room:room-compiler:2.5.0")
 
+    // PAHO - MQTT
     implementation(libs.org.eclipse.paho.client.mqttv3)
     implementation(libs.org.eclipse.paho.android.service)
+
+    // COMPOSE_NAVIGATION
+    implementation(libs.androidx.navigation.compose)
+
+    // DAGGER-HILT
+    implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
+    ksp("androidx.lifecycle:lifecycle-compiler:2.9.0")
+    implementation("com.google.dagger:hilt-android:2.56.2")
+    ksp("com.google.dagger:hilt-android-compiler:2.56.2")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+//
+//    implementation("com.google.dagger:hilt-android:2.56.2")
+//    ksp("com.google.dagger:hilt-android-compiler:2.56.2")
 
 
 
 }
+
+

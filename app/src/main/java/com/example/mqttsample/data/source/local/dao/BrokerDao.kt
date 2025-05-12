@@ -5,13 +5,14 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import com.example.mqttsample.data.source.local.entity.Broker
+import kotlinx.coroutines.flow.Flow
 
 
 @Dao
 interface BrokerDao {
 
     @Query("SELECT * FROM broker")
-    fun getAll(): List<Broker>
+    fun getAll(): Flow<List<Broker>>
 
     @Insert
     fun insert(vararg brokers: Broker)
