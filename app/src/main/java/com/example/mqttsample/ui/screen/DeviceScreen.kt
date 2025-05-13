@@ -43,12 +43,12 @@ fun DeviceScreen(
 
             Row(Modifier.padding(top = 40.dp)) {
                 Text("State: ")
-                Text("On")
+                Text(if(viewModel.powerState.value == true) "On" else "Off")
             }
 
             Row {
                 Text("Brightness: ")
-                Text("80 %")
+                Text("${viewModel.brightness.value}%")
             }
 
             Text("Modify", modifier = Modifier.padding(top = 30.dp))

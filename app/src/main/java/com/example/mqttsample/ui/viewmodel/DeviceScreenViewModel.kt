@@ -30,7 +30,9 @@ class DeviceScreenViewModel @Inject constructor(
     var client: MQTTClient? = null
 
     val connection = mutableStateOf("Connecting...")
-    val brightness = mutableStateOf("")
+    val brightness = mutableStateOf("0")
+
+    val powerState = mutableStateOf(false)
 
     val device = mutableStateOf<BrokerWithDevice?>(null)
 

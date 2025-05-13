@@ -181,7 +181,7 @@ fun MainPage(
 
 @Composable
 fun ListItem(device: Device, onClick: (Int) -> Unit) {
-    Row(Modifier.fillMaxWidth().padding(6.dp).clickable { onClick(device.id) }) {
+    Row(Modifier.fillMaxWidth().clickable { onClick(device.id) }.padding(18.dp)) {
         Column {
             Text(device.name ?: "")
         }
