@@ -7,7 +7,7 @@ import org.eclipse.paho.client.mqttv3.MqttCallback
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttMessage
 
-class MqttRemoteSource(
+class MQTTClient(
     context: Context,
     hostUrl: String,
     clientId: String = ""

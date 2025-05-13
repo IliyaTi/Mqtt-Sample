@@ -61,6 +61,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation("androidx.constraintlayout:constraintlayout-compose:1.1.1")
 
     // ROOM DB
     implementation(libs.androidx.room.runtime)
@@ -71,6 +72,9 @@ dependencies {
     // PAHO - MQTT
     implementation(libs.org.eclipse.paho.client.mqttv3)
     implementation(libs.org.eclipse.paho.android.service)
+//    implementation("com.github.hannesa2:paho.mqtt.android:4.4")
+
+    implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
 
     // COMPOSE_NAVIGATION
     implementation(libs.androidx.navigation.compose)
@@ -81,6 +85,8 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.56.2")
     ksp("com.google.dagger:hilt-android-compiler:2.56.2")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+
 //
 //    implementation("com.google.dagger:hilt-android:2.56.2")
 //    ksp("com.google.dagger:hilt-android-compiler:2.56.2")

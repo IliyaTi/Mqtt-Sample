@@ -5,31 +5,31 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mqttsample.data.repository.BrokerRepository
 import com.example.mqttsample.data.repository.Result
-import com.example.mqttsample.data.source.local.entity.Broker
+import com.example.mqttsample.data.source.local.entity.Device
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
 @HiltViewModel
-class DefineBrokerScreenViewModel @Inject constructor(
+class AddDeviceDialogViewModel @Inject constructor(
     private val repository: BrokerRepository
 ) : ViewModel() {
 
     val name = mutableStateOf("")
-    val host = mutableStateOf("")
-    val port = mutableStateOf("")
+    val topic = mutableStateOf("")
 
     private val _saveState = MutableSharedFlow<Result<Long>>()
     val saveState = _saveState.asSharedFlow()
 
-    fun saveBroker() {
+    fun saveDevice(brokerId: Int) {
         viewModelScope.launch {
-            _saveState.emit(repository.insertBroker(Broker(name = name.value, host = host.value, port = port.value)))
+            _saveState.emit(repository.insertDevice(Device(name = name.value, topic = topic.value, brokerId = brokerId)))
         }
     }
 
+
+
 }
-
-

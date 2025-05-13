@@ -15,7 +15,7 @@ interface BrokerDao {
     fun getAll(): Flow<List<Broker>>
 
     @Insert
-    fun insert(vararg brokers: Broker)
+    fun insert(broker: Broker): Long
 
     @Delete
     fun delete(broker: Broker)
