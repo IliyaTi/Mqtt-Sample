@@ -26,7 +26,7 @@ interface MQTTRepository {
 class MQTTRepositoryImpl (
     private val mqttClient: HiveMqClient
 ) : MQTTRepository, DefaultLifecycleObserver {
-    private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
+    private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Connecting)
     override val connectionState: StateFlow<ConnectionState> = _connectionState
 
     private val _messages = MutableSharedFlow<MQTTMessage>()
@@ -85,17 +85,10 @@ class MQTTRepositoryImpl (
 }
 
 
-sealed class MQTTUIState {
-    object Idle : MQTTUIState()
-    object Loading : MQTTUIState()
-    object Connected : MQTTUIState()
-    data class Subscribed(val topic: String) : MQTTUIState()
-    object MessageSent : MQTTUIState()
-    object Disconnected : MQTTUIState()
-    data class Error(val message: String) : MQTTUIState()
-}
+
 
 sealed class ConnectionState {
+    object Connecting: ConnectionState()
     object Connected : ConnectionState()
     object Disconnected : ConnectionState()
     data class Error(val message: String) : ConnectionState()

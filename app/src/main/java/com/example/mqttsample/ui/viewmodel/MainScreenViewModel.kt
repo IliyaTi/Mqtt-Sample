@@ -24,6 +24,11 @@ class MainScreenViewModel @Inject constructor(
 
 
     init {
+//        fetchDevices()
+    }
+
+
+    fun fetchDevices() {
         viewModelScope.launch {
             snapshotFlow { selectedBroker.value }.collect { state ->
                 state?.let {
@@ -32,6 +37,5 @@ class MainScreenViewModel @Inject constructor(
             }
         }
     }
-
 
 }

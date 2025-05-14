@@ -2,18 +2,23 @@ package com.example.mqttsample.ui.viewmodel
 
 import HiveMqClient
 import android.content.Context
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mqttsample.data.repository.BrokerRepository
+import com.example.mqttsample.data.repository.ConnectionState
+import com.example.mqttsample.data.repository.MQTTMessage
 import com.example.mqttsample.data.repository.MQTTRepository
 import com.example.mqttsample.data.repository.MQTTRepositoryImpl
 import com.example.mqttsample.data.source.local.entity.BrokerWithDevice
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.util.UUID
 import javax.inject.Inject
 
 
@@ -23,50 +28,67 @@ class DeviceScreenViewModel @Inject constructor(
     private val brokerRepository: BrokerRepository,
 ) : ViewModel() {
 
-    private var hiveMqRepo: MQTTRepository? = null
+    private lateinit var hiveMqRepo: MQTTRepository
 
-    val connectionState = hiveMqRepo.connectionState
-    val messages = hiveMqRepo.messages
+    var connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Connecting)
+    var messages = MutableSharedFlow<MQTTMessage>()
+
+    var modifyField by mutableStateOf("")
 
     private val _uiState = MutableStateFlow<MQTTUIState>(MQTTUIState.Idle)
     val uiState: StateFlow<MQTTUIState> = _uiState
 
-    val connection = mutableStateOf("Connecting...")
-    val brightness = mutableStateOf("0")
 
-    val powerState = mutableStateOf(false)
-
-    val device = mutableStateOf<BrokerWithDevice?>(null)
-
-    val error = mutableStateOf<String?>(null)
+    val deviceWithBroker = mutableStateOf<BrokerWithDevice?>(null)
 
 
-    init {
+
+    fun populateDevice(deviceId: Int) {
         viewModelScope.launch {
-            snapshotFlow { device.value }.collect {
-                it?.let {
-                    hiveMqRepo = MQTTRepositoryImpl(
-                        HiveMqClient(
-                            context = context,
-                            brokerUrl = it.broker.host,
-                            port = it.broker.port.toInt()
-                        )
-                    )
+            val result = brokerRepository.getDeviceWithBroker(deviceId)
+            deviceWithBroker.value = result
 
+            val port = result.broker.port
+
+            hiveMqRepo = MQTTRepositoryImpl(
+                HiveMqClient(
+                    context = context,
+                    brokerUrl = result.broker.host,
+                    port = if (port.isBlank()) 1883 else port.toInt()
+                )
+            )
+
+            launch {
+                hiveMqRepo.connectionState.collect {
+                    connectionState.emit(it)
+                }
+            }
+
+            launch {
+                hiveMqRepo.messages.collect {
+                    messages.emit(it)
                 }
             }
 
 
+            connect()
+
+
+            connectionState.collect { s ->
+                if (s is ConnectionState.Connected) {
+                    subscribe()
+                }
+            }
+
 
         }
-
     }
 
     fun connect() {
         viewModelScope.launch {
             _uiState.value = MQTTUIState.Loading
             try {
-                repository.connect()
+                hiveMqRepo.connect()
                 _uiState.value = MQTTUIState.Connected
             } catch (e: Exception) {
                 _uiState.value = MQTTUIState.Error(e.message ?: "Connection failed")
@@ -74,23 +96,23 @@ class DeviceScreenViewModel @Inject constructor(
         }
     }
 
-    fun subscribe(topic: String) {
+    fun subscribe() {
         viewModelScope.launch {
             _uiState.value = MQTTUIState.Loading
             try {
-                repository.subscribe(topic)
-                _uiState.value = MQTTUIState.Subscribed(topic)
+                hiveMqRepo.subscribe(deviceWithBroker.value!!.device.topic)
+                _uiState.value = MQTTUIState.Subscribed(deviceWithBroker.value!!.device.topic)
             } catch (e: Exception) {
                 _uiState.value = MQTTUIState.Error(e.message ?: "Subscription failed")
             }
         }
     }
 
-    fun publish(topic: String, message: String) {
+    fun publish() {
         viewModelScope.launch {
             _uiState.value = MQTTUIState.Loading
             try {
-                repository.publish(topic, message)
+                hiveMqRepo.publish(deviceWithBroker.value!!.device.topic, modifyField)
                 _uiState.value = MQTTUIState.MessageSent
             } catch (e: Exception) {
                 _uiState.value = MQTTUIState.Error(e.message ?: "Publish failed")
@@ -100,20 +122,27 @@ class DeviceScreenViewModel @Inject constructor(
 
     fun disconnect() {
         viewModelScope.launch {
-            repository.disconnect()
+            hiveMqRepo.disconnect()
             _uiState.value = MQTTUIState.Disconnected
         }
     }
-}
 
 
-    fun populateDevice(deviceId: Int) {
-        viewModelScope.launch {
-            val result = brokerRepository.getDeviceWithBroker(deviceId)
-            device.value = result
-        }
+    override fun onCleared() {
+        disconnect()
+        super.onCleared()
     }
 
 
+}
 
+
+sealed class MQTTUIState {
+    object Idle : MQTTUIState()
+    object Loading : MQTTUIState()
+    object Connected : MQTTUIState()
+    data class Subscribed(val topic: String) : MQTTUIState()
+    object MessageSent : MQTTUIState()
+    object Disconnected : MQTTUIState()
+    data class Error(val message: String) : MQTTUIState()
 }

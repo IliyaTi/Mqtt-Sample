@@ -4,7 +4,6 @@ import com.hivemq.client.mqtt.MqttGlobalPublishFilter
 import com.hivemq.client.mqtt.datatypes.MqttQos
 import com.hivemq.client.mqtt.mqtt5.Mqtt5AsyncClient
 import com.hivemq.client.mqtt.mqtt5.Mqtt5Client
-import com.hivemq.client.mqtt.mqtt5.message.publish.Mqtt5Publish
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -63,7 +62,7 @@ class HiveMqClient(
             Log.d(TAG, "Connected to $brokerUrl")
         } catch (e: Exception) {
             _events.tryEmit(MQTTEvent.Error("Connection failed", e))
-            Log.e(TAG, "Connect error", e)
+            e.printStackTrace()
         }
     }
 
