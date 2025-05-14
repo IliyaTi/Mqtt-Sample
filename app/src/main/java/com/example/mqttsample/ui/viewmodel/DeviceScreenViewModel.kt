@@ -1,22 +1,18 @@
 package com.example.mqttsample.ui.viewmodel
 
+import HiveMqClient
 import android.content.Context
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mqttsample.data.repository.BrokerRepository
+import com.example.mqttsample.data.repository.MQTTRepository
+import com.example.mqttsample.data.repository.MQTTRepositoryImpl
 import com.example.mqttsample.data.source.local.entity.BrokerWithDevice
-import com.example.mqttsample.data.source.remote.MQTTClient
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
-import org.eclipse.paho.client.mqttv3.IMqttActionListener
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
-import org.eclipse.paho.client.mqttv3.IMqttToken
-import org.eclipse.paho.client.mqttv3.MqttCallback
-import org.eclipse.paho.client.mqttv3.MqttMessage
 import java.util.UUID
 import javax.inject.Inject
 
@@ -27,7 +23,13 @@ class DeviceScreenViewModel @Inject constructor(
     private val brokerRepository: BrokerRepository,
 ) : ViewModel() {
 
-    var client: MQTTClient? = null
+    private var hiveMqRepo: MQTTRepository? = null
+
+    val connectionState = hiveMqRepo.connectionState
+    val messages = hiveMqRepo.messages
+
+    private val _uiState = MutableStateFlow<MQTTUIState>(MQTTUIState.Idle)
+    val uiState: StateFlow<MQTTUIState> = _uiState
 
     val connection = mutableStateOf("Connecting...")
     val brightness = mutableStateOf("0")
@@ -43,8 +45,14 @@ class DeviceScreenViewModel @Inject constructor(
         viewModelScope.launch {
             snapshotFlow { device.value }.collect {
                 it?.let {
-                    client = MQTTClient(context, hostUrl = it.broker.host, UUID.randomUUID().toString())
-                    connect()
+                    hiveMqRepo = MQTTRepositoryImpl(
+                        HiveMqClient(
+                            context = context,
+                            brokerUrl = it.broker.host,
+                            port = it.broker.port.toInt()
+                        )
+                    )
+
                 }
             }
 
@@ -54,35 +62,49 @@ class DeviceScreenViewModel @Inject constructor(
 
     }
 
-
     fun connect() {
-        client?.connect(
-            callback = object : MqttCallback {
-                override fun connectionLost(cause: Throwable?) {
-                    connection.value = "Disconnected: ${cause?.message}"
-                }
-
-                override fun messageArrived(topic: String?, message: MqttMessage?) {
-                    brightness.value = message?.payload?.decodeToString() ?: ""
-                }
-
-                override fun deliveryComplete(token: IMqttDeliveryToken?) {
-
-                }
-
-            },
-            actionListener = object : IMqttActionListener {
-                override fun onSuccess(asyncActionToken: IMqttToken?) {
-                    connection.value = "Connected"
-                }
-
-                override fun onFailure(asyncActionToken: IMqttToken?, exception: Throwable?) {
-                    connection.value = "Failed: ${exception?.message}"
-                }
-
+        viewModelScope.launch {
+            _uiState.value = MQTTUIState.Loading
+            try {
+                repository.connect()
+                _uiState.value = MQTTUIState.Connected
+            } catch (e: Exception) {
+                _uiState.value = MQTTUIState.Error(e.message ?: "Connection failed")
             }
-        )
+        }
     }
+
+    fun subscribe(topic: String) {
+        viewModelScope.launch {
+            _uiState.value = MQTTUIState.Loading
+            try {
+                repository.subscribe(topic)
+                _uiState.value = MQTTUIState.Subscribed(topic)
+            } catch (e: Exception) {
+                _uiState.value = MQTTUIState.Error(e.message ?: "Subscription failed")
+            }
+        }
+    }
+
+    fun publish(topic: String, message: String) {
+        viewModelScope.launch {
+            _uiState.value = MQTTUIState.Loading
+            try {
+                repository.publish(topic, message)
+                _uiState.value = MQTTUIState.MessageSent
+            } catch (e: Exception) {
+                _uiState.value = MQTTUIState.Error(e.message ?: "Publish failed")
+            }
+        }
+    }
+
+    fun disconnect() {
+        viewModelScope.launch {
+            repository.disconnect()
+            _uiState.value = MQTTUIState.Disconnected
+        }
+    }
+}
 
 
     fun populateDevice(deviceId: Int) {

@@ -7,6 +7,7 @@ plugins {
     id("com.google.dagger.hilt.android")
 
     kotlin("plugin.serialization")
+
 }
 
 android {
@@ -32,12 +33,19 @@ android {
             )
         }
     }
+
+    packaging {
+        resources {
+            excludes += listOf("META-INF/INDEX.LIST", "META-INF/io.netty.versions.properties")
+        }
+    }
+
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = "1.8"
     }
     buildFeatures {
         compose = true
@@ -70,9 +78,15 @@ dependencies {
     ksp("androidx.room:room-compiler:2.5.0")
 
     // PAHO - MQTT
-    implementation(libs.org.eclipse.paho.client.mqttv3)
-    implementation(libs.org.eclipse.paho.android.service)
+//    implementation(libs.org.eclipse.paho.client.mqttv3)
+//    implementation(libs.org.eclipse.paho.android.service)
 //    implementation("com.github.hannesa2:paho.mqtt.android:4.4")
+
+    // HIVEMQ - MQTT
+    implementation("com.hivemq:hivemq-mqtt-client:1.3.3")
+
+    implementation("net.sourceforge.streamsupport:android-retrostreams:1.7.4")
+    implementation("net.sourceforge.streamsupport:android-retrofuture:1.7.4")
 
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
 
